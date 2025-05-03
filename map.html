@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Glassbåten livekarta</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; height: 100vh; }
+  </style>
+</head>
+<body>
+
+<div id='map'></div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZ2xhc3NiYXRlbiIsImEiOiJjbWE2encxajUwdDhoMm9zOHF5dzI4NXF0In0.f6i6oOIXB0UyCOe3oK0iyw';
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [11.87765, 57.63052],
+    zoom: 13
+  });
+
+  // Hämta position
+  fetch('https://raw.githubusercontent.com/Glassbaten/mapbox-bat/main/posision.json')
+    .then(response => response.json())
+    .then(data => {
+      new mapboxgl.Marker({ color: 'red' }) 
+        .setLngLat([data.lng, data.lat])
+        .addTo(map);
+    });
+
+  // Hämta rutt
+  fetch('https://raw.githubusercontent.com/Glassbaten/mapbox-bat/main/rutt.json')
+    .then(response => response.json())
+    .then(data => {
+      const coordinates = data.stops.map(stop => [stop.lng, stop.lat]);
+      map.addSource('route', {
+        'type': 'geojson',
+        'data': {
+          'type': 'Feature',
+          'properties': {},
+          'geometry': {
+            'type': 'LineString',
+            'coordinates': coordinates
+          }
+        }
+      });
+      map.addLayer({
+        'id': 'route',
+        'type': 'line',
+        'source': 'route',
+        'layout': { 'line-join': 'round', 'line-cap': 'round' },
+        'paint': { 'line-color': '#1DB954', 'line-width': 4 }
+      });
+    });
+</script>
+
+</body>
+</html>
